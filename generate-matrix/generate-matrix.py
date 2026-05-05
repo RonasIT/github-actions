@@ -63,16 +63,20 @@ def fetch_laravel_versions(laravel_min):
 
 def generate_matrix(php_versions, laravel_versions):
     """Generate cross-product matrix and exclude latest+latest for non-coverage job."""
-    return {
+    matrix = {
         "php-version": php_versions,
         "laravel-version": laravel_versions,
-        "exclude": [
+    }
+
+    if len(php_versions) * len(laravel_versions) > 1:
+        matrix["exclude"] = [
             {
                 "php-version": php_versions[-1],
                 "laravel-version": laravel_versions[-1],
             }
-        ],
-    }
+        ]
+
+    return matrix
 
 
 def write_github_outputs(result):
