@@ -2,6 +2,12 @@ name: Run tests
 
 on:
   workflow_call:
+    inputs:
+      use-database:
+        description: Enable PostgreSQL-backed test jobs
+        required: false
+        type: boolean
+        default: false
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
@@ -25,6 +31,27 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix: ${{ fromJson(needs.prepare-matrix.outputs.matrix) }}
+    env: &db-env
+      DB_CONNECTION: pgsql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+      DB_DATABASE: forge
+      DB_USERNAME: forge
+      DB_PASSWORD: secret
+    services: &postgres-service
+      postgres:
+        image: ${{ inputs.use-database && 'postgres' || '' }}
+        env:
+          POSTGRES_DB: forge
+          POSTGRES_USER: forge
+          POSTGRES_PASSWORD: secret
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -34,12 +61,15 @@ jobs:
           php-version: ${{ matrix.php-version }}
           laravel-version: ${{ matrix.laravel-version }}
           coverage: none
+          use-database: ${{ inputs.use-database && 'true' || 'false' }}
       - name: Execute unit tests via PHPUnit
         run: vendor/bin/phpunit
 
   tests-with-coverage:
     needs: prepare-matrix
     runs-on: ubuntu-latest
+    env: *db-env
+    services: *postgres-service
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -49,6 +79,7 @@ jobs:
           php-version: ${{ needs.prepare-matrix.outputs.php-latest }}
           laravel-version: ${{ needs.prepare-matrix.outputs.laravel-latest }}
           coverage: xdebug
+          use-database: ${{ inputs.use-database && 'true' || 'false' }}
       - name: Format code style via Pint
         run: vendor/bin/pint --test
       - name: Execute unit tests via PHPUnit with coverage
