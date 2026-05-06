@@ -16,10 +16,10 @@ def parse_composer_json():
         composer = json.load(file)
 
     php_constraint = composer.get("require", {}).get("php", ">=8.0")
-    laravel_constraint = composer.get("require", {}).get("laravel/framework", ">=11.0")
+    laravel_constraint = composer.get("require", {}).get("laravel/framework", ">=10.0")
 
     php_min = extract_min_version(php_constraint, default="8.0")
-    laravel_min = extract_min_version(laravel_constraint, default="11.0")
+    laravel_min = extract_min_version(laravel_constraint, default="10.0")
 
     return php_min, laravel_min
 
