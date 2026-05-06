@@ -25,9 +25,14 @@ def parse_composer_json():
 
 
 def extract_min_version(requirement, default):
-    """Extract minimal major.minor from constraint like >=8.3 or >=8.3.0."""
-    match = re.search(r">=\s*(\d+\.\d+)", requirement)
-    return match.group(1) if match else default
+    """Extract minimal major.minor and normalize constraints like >=12 to 12.0."""
+    match = re.search(r"(\d+)(?:\.(\d+))?", requirement)
+    if not match:
+        return default
+
+    major = match.group(1)
+    minor = match.group(2) or "0"
+    return f"{major}.{minor}"
 
 
 def fetch_php_versions(php_min):
