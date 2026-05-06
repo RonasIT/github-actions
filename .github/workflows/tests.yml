@@ -31,13 +31,6 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix: ${{ fromJson(needs.prepare-matrix.outputs.matrix) }}
-    env: &db-env
-      DB_CONNECTION: pgsql
-      DB_HOST: 127.0.0.1
-      DB_PORT: 5432
-      DB_DATABASE: forge
-      DB_USERNAME: forge
-      DB_PASSWORD: secret
     services: &postgres-service
       postgres:
         image: ${{ inputs.use-database && 'postgres' || '' }}
@@ -68,7 +61,6 @@ jobs:
   tests-with-coverage:
     needs: prepare-matrix
     runs-on: ubuntu-latest
-    env: *db-env
     services: *postgres-service
     steps:
       - name: Checkout

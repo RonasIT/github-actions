@@ -35,6 +35,26 @@ runs:
         sudo apt-get install -y postgresql-client
         psql --version
 
+    - name: Configure database environment
+      if: ${{ inputs.use-database == 'true' }}
+      shell: bash
+      run: |
+        db_connection="${DB_CONNECTION:-pgsql}"
+        db_host="${DB_HOST:-127.0.0.1}"
+        db_port="${DB_PORT:-5432}"
+        db_database="${DB_DATABASE:-forge}"
+        db_username="${DB_USERNAME:-forge}"
+        db_password="${DB_PASSWORD:-secret}"
+
+        {
+          echo "DB_CONNECTION=$db_connection"
+          echo "DB_HOST=$db_host"
+          echo "DB_PORT=$db_port"
+          echo "DB_DATABASE=$db_database"
+          echo "DB_USERNAME=$db_username"
+          echo "DB_PASSWORD=$db_password"
+        } >> "$GITHUB_ENV"
+
     - name: Wait for PostgreSQL
       if: ${{ inputs.use-database == 'true' }}
       shell: bash
