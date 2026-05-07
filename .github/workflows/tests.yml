@@ -8,6 +8,16 @@ on:
         required: false
         type: boolean
         default: false
+      phpunit-command:
+        description: Command used to run regular PHPUnit tests
+        required: false
+        type: string
+        default: vendor/bin/phpunit
+      phpunit-coverage-command:
+        description: Command used to run PHPUnit tests with coverage
+        required: false
+        type: string
+        default: vendor/bin/phpunit --coverage-clover build/logs/clover.xml
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
@@ -56,7 +66,7 @@ jobs:
           coverage: none
           use-database: ${{ inputs.use-database && 'true' || 'false' }}
       - name: Execute unit tests via PHPUnit
-        run: vendor/bin/phpunit
+        run: ${{ inputs.phpunit-command }}
 
   tests-with-coverage:
     needs: prepare-matrix
@@ -75,7 +85,7 @@ jobs:
       - name: Format code style via Pint
         run: vendor/bin/pint --test
       - name: Execute unit tests via PHPUnit with coverage
-        run: vendor/bin/phpunit --coverage-clover build/logs/clover.xml
+        run: ${{ inputs.phpunit-coverage-command }}
       - name: Export coverage report
         uses: actions/upload-artifact@v7
         with:
