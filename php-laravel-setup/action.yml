@@ -16,6 +16,14 @@ inputs:
     description: Enable PostgreSQL availability checks before dependency install
     required: false
     default: 'false'
+  additional-package:
+    description: Optional composer package to install for the current matrix job
+    required: false
+    default: ''
+  additional-package-version:
+    description: Version constraint for the optional composer package
+    required: false
+    default: ''
 
 runs:
   using: composite
@@ -76,6 +84,14 @@ runs:
       env:
         LARAVEL_VERSION: ${{ inputs.laravel-version }}
       run: composer require "laravel/framework:$LARAVEL_VERSION" -q --no-update
+
+    - name: Install additional package version
+      if: ${{ inputs.additional-package != '' && inputs.additional-package-version != '' }}
+      shell: bash
+      env:
+        ADDITIONAL_PACKAGE: ${{ inputs.additional-package }}
+        ADDITIONAL_PACKAGE_VERSION: ${{ inputs.additional-package-version }}
+      run: composer require "$ADDITIONAL_PACKAGE:$ADDITIONAL_PACKAGE_VERSION" -q --no-update
 
     - name: Install dependencies
       shell: bash

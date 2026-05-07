@@ -4,6 +4,12 @@ description: >
   and current supported releases from php.net / Packagist.
   Excludes the latest+latest combination so it can run separately with code coverage.
 
+inputs:
+  additional-package:
+    description: Optional composer package to include as an additional matrix axis
+    required: false
+    default: ''
+
 outputs:
   matrix:
     description: JSON matrix object for strategy.matrix (includes exclude)
@@ -14,6 +20,9 @@ outputs:
   laravel-latest:
     description: Latest stable Laravel major series (e.g. "13.*")
     value: ${{ steps.generate-matrix.outputs.laravel-latest }}
+  additional-package-latest:
+    description: Latest stable major series for the optional composer package (e.g. "12.*")
+    value: ${{ steps.generate-matrix.outputs.additional-package-latest }}
 
 runs:
   using: composite
@@ -26,4 +35,6 @@ runs:
       id: generate-matrix
       shell: bash
       working-directory: ${{ github.action_path }}
+      env:
+        ADDITIONAL_PACKAGE: ${{ inputs.additional-package }}
       run: python ./generate-matrix.py
