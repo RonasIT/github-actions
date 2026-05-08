@@ -13,6 +13,11 @@ on:
         required: false
         type: string
         default: ''
+      custom-exclude:
+        description: Optional JSON array of additional matrix.exclude objects
+        required: false
+        type: string
+        default: '[]'
       phpunit-command:
         description: Command used to run regular PHPUnit tests
         required: false
@@ -43,6 +48,7 @@ jobs:
         uses: ronasit/github-actions/generate-matrix@main
         with:
           additional-package: ${{ inputs.additional-package }}
+          custom-exclude: ${{ inputs.custom-exclude }}
 
   tests:
     needs: prepare-matrix

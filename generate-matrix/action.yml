@@ -9,6 +9,10 @@ inputs:
     description: Optional composer package to include as an additional matrix axis
     required: false
     default: ''
+  custom-exclude:
+    description: Optional JSON array of additional matrix.exclude objects
+    required: false
+    default: '[]'
 
 outputs:
   matrix:
@@ -37,4 +41,5 @@ runs:
       working-directory: ${{ github.action_path }}
       env:
         ADDITIONAL_PACKAGE: ${{ inputs.additional-package }}
+        CUSTOM_EXCLUDE: ${{ inputs.custom-exclude }}
       run: python ./generate-matrix.py

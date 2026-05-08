@@ -8,6 +8,26 @@ import urllib.parse
 import urllib.request
 
 
+def parse_custom_exclude(raw_custom_exclude):
+    """Parse custom exclude JSON from workflow input."""
+    if not raw_custom_exclude or not raw_custom_exclude.strip():
+        return []
+
+    try:
+        custom_exclude = json.loads(raw_custom_exclude)
+    except json.JSONDecodeError as error:
+        raise ValueError(f"Invalid CUSTOM_EXCLUDE JSON: {error}") from error
+
+    if not isinstance(custom_exclude, list):
+        raise ValueError("CUSTOM_EXCLUDE must be a JSON array of exclude objects")
+
+    for item in custom_exclude:
+        if not isinstance(item, dict):
+            raise ValueError("Each item in CUSTOM_EXCLUDE must be an object")
+
+    return custom_exclude
+
+
 def parse_composer_json(additional_package=""):
     """Extract minimal PHP, Laravel and optional package versions from composer.json requirements."""
     workspace = os.getenv("GITHUB_WORKSPACE", ".")
@@ -85,9 +105,26 @@ def fetch_composer_package_versions(package_name, package_min):
         return [f"{min_major}.*"]
 
 
-def generate_matrix(php_versions, laravel_versions, additional_package_versions=None):
+def merge_excludes(auto_exclude, custom_exclude):
+    """Merge auto and custom excludes while removing duplicates."""
+    merged = []
+    seen = set()
+
+    for item in auto_exclude + custom_exclude:
+        key = json.dumps(item, sort_keys=True)
+        if key in seen:
+            continue
+
+        seen.add(key)
+        merged.append(item)
+
+    return merged
+
+
+def generate_matrix(php_versions, laravel_versions, additional_package_versions=None, custom_exclude=None):
     """Generate cross-product matrix and exclude the latest combination for non-coverage job."""
     additional_package_versions = additional_package_versions or [""]
+    custom_exclude = custom_exclude or []
 
     matrix = {
         "php-version": php_versions,
@@ -95,14 +132,20 @@ def generate_matrix(php_versions, laravel_versions, additional_package_versions=
         "additional-package-version": additional_package_versions,
     }
 
+    auto_exclude = []
+
     if len(php_versions) * len(laravel_versions) * len(additional_package_versions) > 1:
-        matrix["exclude"] = [
+        auto_exclude = [
             {
                 "php-version": php_versions[-1],
                 "laravel-version": laravel_versions[-1],
                 "additional-package-version": additional_package_versions[-1],
             }
         ]
+
+    excludes = merge_excludes(auto_exclude, custom_exclude)
+    if excludes:
+        matrix["exclude"] = excludes
 
     return matrix
 
@@ -122,6 +165,7 @@ def write_github_outputs(result):
 
 if __name__ == "__main__":
     additional_package = os.getenv("ADDITIONAL_PACKAGE", "").strip()
+    custom_exclude = parse_custom_exclude(os.getenv("CUSTOM_EXCLUDE", ""))
     php_min, laravel_min, additional_package_min = parse_composer_json(additional_package)
 
     php_versions = fetch_php_versions(php_min)
@@ -132,7 +176,7 @@ if __name__ == "__main__":
         else [""]
     )
 
-    matrix = generate_matrix(php_versions, laravel_versions, additional_package_versions)
+    matrix = generate_matrix(php_versions, laravel_versions, additional_package_versions, custom_exclude)
     result = {
         "matrix": matrix,
         "php-latest": php_versions[-1],
