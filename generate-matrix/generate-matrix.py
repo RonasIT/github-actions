@@ -61,6 +61,15 @@ def extract_min_version(requirement, default):
     return f"{major}.{minor}"
 
 
+def parse_major_minor(version):
+    """Convert version string into a comparable (major, minor) tuple."""
+    match = re.match(r"^(\d+)\.(\d+)", version)
+    if not match:
+        raise ValueError(f"Invalid major.minor version: {version}")
+
+    return int(match.group(1)), int(match.group(2))
+
+
 def fetch_php_versions(php_min):
     """Fetch all supported PHP major.minor versions >= php_min from php.net."""
     try:
@@ -68,7 +77,8 @@ def fetch_php_versions(php_min):
             payload = json.load(response)
 
         supported = payload["8"]["supported_versions"]
-        return [v for v in supported if v >= php_min]
+        php_min_tuple = parse_major_minor(php_min)
+        return [v for v in supported if parse_major_minor(v) >= php_min_tuple]
     except Exception:
         return [php_min]
 
@@ -87,7 +97,6 @@ def fetch_composer_package_versions(package_name, package_min):
         with urllib.request.urlopen(f"https://repo.packagist.org/p2/{package_path}.json", timeout=20) as response:
             payload = json.load(response)
 
-        min_major = int(package_min.split(".")[0])
         latest_major = None
 
         for release in payload["packages"][package_name]:
