@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
-"""Generate CI matrix: minimum versions from composer.json and latest versions from public APIs."""
+"""Generate CI matrix: minimum versions from composer.json and versions from local/Packagist sources."""
 
 import json
 import os
 import re
 import urllib.parse
 import urllib.request
+
+from php_versions import PHP_VERSIONS
 
 
 def parse_custom_exclude(raw_custom_exclude):
@@ -68,19 +70,6 @@ def parse_major_minor(version):
         raise ValueError(f"Invalid major.minor version: {version}")
 
     return int(match.group(1)), int(match.group(2))
-
-
-def fetch_php_versions(php_min):
-    """Fetch all supported PHP major.minor versions >= php_min from php.net."""
-    try:
-        with urllib.request.urlopen("https://www.php.net/releases/?json", timeout=15) as response:
-            payload = json.load(response)
-
-        supported = payload["8"]["supported_versions"]
-        php_min_tuple = parse_major_minor(php_min)
-        return [v for v in supported if parse_major_minor(v) >= php_min_tuple]
-    except Exception:
-        return [php_min]
 
 
 def fetch_laravel_versions(laravel_min):
@@ -177,7 +166,11 @@ if __name__ == "__main__":
     custom_exclude = parse_custom_exclude(os.getenv("CUSTOM_EXCLUDE", ""))
     php_min, laravel_min, additional_package_min = parse_composer_json(additional_package)
 
-    php_versions = fetch_php_versions(php_min)
+    php_versions = PHP_VERSIONS
+    php_versions = [version for version in php_versions if parse_major_minor(version) >= parse_major_minor(php_min)]
+    if not php_versions:
+        php_versions = [php_min]
+
     laravel_versions = fetch_laravel_versions(laravel_min)
     additional_package_versions = (
         fetch_composer_package_versions(additional_package, additional_package_min)

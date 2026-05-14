@@ -1,7 +1,7 @@
 name: Generate CI matrix
 description: >
-  Generates a PHP × Laravel test matrix from composer.json min-versions
-  and current supported releases from php.net / Packagist.
+  Generates a PHP × Laravel test matrix from composer.json min-versions,
+  a local PHP version module, and current releases from Packagist.
   Excludes the latest+latest combination so it can run separately with code coverage.
 
 inputs:
