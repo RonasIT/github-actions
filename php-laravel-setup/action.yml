@@ -13,7 +13,7 @@ inputs:
     required: false
     default: none
   use-database:
-    description: Enable PostgreSQL availability checks before dependency install
+    description: Enable PostgreSQL environment for DB-backed test runs
     required: false
     default: 'false'
   additional-package:
@@ -35,14 +35,6 @@ runs:
         coverage: ${{ inputs.coverage }}
         tools: composer
 
-    - name: Set up PostgreSQL
-      if: ${{ inputs.use-database == 'true' }}
-      shell: bash
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y postgresql-client
-        psql --version
-
     - name: Configure database environment
       if: ${{ inputs.use-database == 'true' }}
       shell: bash
@@ -62,22 +54,6 @@ runs:
           echo "DB_USERNAME=$db_username"
           echo "DB_PASSWORD=$db_password"
         } >> "$GITHUB_ENV"
-
-    - name: Wait for PostgreSQL
-      if: ${{ inputs.use-database == 'true' }}
-      shell: bash
-      run: |
-        echo "Waiting for PostgreSQL to be ready..."
-        for i in {1..30}; do
-          if pg_isready -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USERNAME" -d "$DB_DATABASE"; then
-            echo "PostgreSQL is ready"
-            exit 0
-          fi
-          echo "Waiting for PostgreSQL..."
-          sleep 2
-        done
-        echo "PostgreSQL failed to start"
-        exit 1
 
     - name: Install Laravel version
       shell: bash
