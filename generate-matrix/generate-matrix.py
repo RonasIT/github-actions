@@ -72,11 +72,6 @@ def parse_major_minor(version):
     return int(match.group(1)), int(match.group(2))
 
 
-def fetch_laravel_versions(laravel_min):
-    """Fetch all stable Laravel major series from Packagist >= laravel_min major."""
-    return fetch_composer_package_versions("laravel/framework", laravel_min)
-
-
 def fetch_composer_package_versions(package_name, package_min):
     """Fetch all stable package major series from Packagist >= package_min major."""
     min_major = int(package_min.split(".")[0])
@@ -171,7 +166,8 @@ if __name__ == "__main__":
     if not php_versions:
         php_versions = [php_min]
 
-    laravel_versions = fetch_laravel_versions(laravel_min)
+    laravel_versions = fetch_composer_package_versions("laravel/framework", laravel_min)
+
     additional_package_versions = (
         fetch_composer_package_versions(additional_package, additional_package_min)
         if additional_package
