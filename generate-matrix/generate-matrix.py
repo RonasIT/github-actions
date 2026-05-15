@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
-"""Generate CI matrix: minimum versions from composer.json and versions from local/Packagist sources."""
 
 import json
 import os
 import re
-import urllib.parse
 import urllib.request
 
 from php_versions import PHP_VERSIONS
@@ -77,8 +75,7 @@ def fetch_composer_package_versions(package_name, package_min):
     min_major = int(package_min.split(".")[0])
 
     try:
-        package_path = urllib.parse.quote(package_name, safe="")
-        with urllib.request.urlopen(f"https://repo.packagist.org/p2/{package_path}.json", timeout=20) as response:
+        with urllib.request.urlopen(f"https://repo.packagist.org/p2/{package_name}.json", timeout=20) as response:
             payload = json.load(response)
 
         latest_major = None
@@ -161,8 +158,11 @@ if __name__ == "__main__":
     custom_exclude = parse_custom_exclude(os.getenv("CUSTOM_EXCLUDE", ""))
     php_min, laravel_min, additional_package_min = parse_composer_json(additional_package)
 
-    php_versions = PHP_VERSIONS
-    php_versions = [version for version in php_versions if parse_major_minor(version) >= parse_major_minor(php_min)]
+    php_versions = [
+        version
+        for version in PHP_VERSIONS
+        if parse_major_minor(version) >= parse_major_minor(php_min)
+    ]
     if not php_versions:
         php_versions = [php_min]
 

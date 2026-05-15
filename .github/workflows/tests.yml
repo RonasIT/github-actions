@@ -19,7 +19,7 @@ on:
         type: string
         default: '[]'
       phpunit-command:
-        description: Command used to run regular PHPUnit tests
+        description: Command used to run PHPUnit tests
         required: false
         type: string
         default: vendor/bin/phpunit
@@ -100,7 +100,7 @@ jobs:
           use-database: ${{ inputs.use-database && 'true' || 'false' }}
           additional-package: ${{ inputs.additional-package }}
           additional-package-version: ${{ needs.prepare-matrix.outputs.additional-package-latest }}
-      - name: Format code style via Pint
+      - name: Check code style via Pint
         run: vendor/bin/pint --test
       - name: Execute unit tests via PHPUnit with coverage
         run: ${{ inputs.phpunit-coverage-command }}

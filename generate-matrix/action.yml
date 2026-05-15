@@ -1,8 +1,7 @@
 name: Generate CI matrix
 description: >
-  Generates a PHP × Laravel test matrix from composer.json min-versions,
-  a local PHP version module, and current releases from Packagist.
-  Excludes the latest+latest combination so it can run separately with code coverage.
+  Generates a PHP * Laravel * Additional package test matrix, using min-versions from composer.json and latest releases from Packagist.
+  Excludes the latest versions combination for a separate job with code coverage.
 
 inputs:
   additional-package:
@@ -16,16 +15,16 @@ inputs:
 
 outputs:
   matrix:
-    description: JSON matrix object for strategy.matrix (includes exclude)
+    description: JSON matrix object for strategy.matrix
     value: ${{ steps.generate-matrix.outputs.matrix }}
   php-latest:
-    description: Latest supported PHP major.minor (e.g. "8.5")
+    description: Latest PHP version major.minor (e.g. "8.5")
     value: ${{ steps.generate-matrix.outputs.php-latest }}
   laravel-latest:
-    description: Latest stable Laravel major series (e.g. "13.*")
+    description: Latest Laravel version (e.g. "13.*")
     value: ${{ steps.generate-matrix.outputs.laravel-latest }}
   additional-package-latest:
-    description: Latest stable major series for the optional composer package (e.g. "12.*")
+    description: Latest version of the optional composer package (e.g. "12.*")
     value: ${{ steps.generate-matrix.outputs.additional-package-latest }}
 
 runs:

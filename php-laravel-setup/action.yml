@@ -6,14 +6,14 @@ inputs:
     description: PHP version for the job
     required: true
   laravel-version:
-    description: Laravel framework version constraint
+    description: Laravel version  for the job
     required: true
   coverage:
     description: Coverage driver passed to setup-php
     required: false
     default: none
   use-database:
-    description: Enable PostgreSQL environment for DB-backed test runs
+    description: Enable PostgreSQL-backed test jobs
     required: false
     default: 'false'
   additional-package:
@@ -21,7 +21,7 @@ inputs:
     required: false
     default: ''
   additional-package-version:
-    description: Version constraint for the optional composer package
+    description: Optional composer package version for the job
     required: false
     default: ''
 
@@ -55,13 +55,13 @@ runs:
           echo "DB_PASSWORD=$db_password"
         } >> "$GITHUB_ENV"
 
-    - name: Install Laravel version
+    - name: Specify the Laravel version
       shell: bash
       env:
         LARAVEL_VERSION: ${{ inputs.laravel-version }}
       run: composer require "laravel/framework:$LARAVEL_VERSION" -q --no-update
 
-    - name: Install additional package version
+    - name: Specify the additional package version
       if: ${{ inputs.additional-package != '' && inputs.additional-package-version != '' }}
       shell: bash
       env:
@@ -69,6 +69,6 @@ runs:
         ADDITIONAL_PACKAGE_VERSION: ${{ inputs.additional-package-version }}
       run: composer require "$ADDITIONAL_PACKAGE:$ADDITIONAL_PACKAGE_VERSION" -q --no-update
 
-    - name: Install dependencies
+    - name: Install composer dependencies
       shell: bash
       run: composer update -W -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
