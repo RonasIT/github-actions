@@ -69,6 +69,10 @@ runs:
         ADDITIONAL_PACKAGE_VERSION: ${{ inputs.additional-package-version }}
       run: composer require "$ADDITIONAL_PACKAGE:$ADDITIONAL_PACKAGE_VERSION" -q --no-update
 
+    - name: Configure composer audit policy
+      shell: bash
+      run: composer config audit.block-insecure false
+
     - name: Install composer dependencies
       shell: bash
       run: composer update -W -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
